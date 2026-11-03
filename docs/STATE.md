@@ -1,6 +1,6 @@
 # State
 
-Updated: 2026-11-03 (late evening)
+Updated: 2026-11-03 (night)
 
 **Step:** 1, skeleton and proof of life (in progress).
 
@@ -10,6 +10,9 @@ Updated: 2026-11-03 (late evening)
 - Core deps: serde + serde_json + hmac + sha2, vendored; `scripts/core-check.sh` builds and tests the core offline (CI runs it). Both CI jobs, bridge and Swift bindings included, also run in Claude's workspace.
 - Bluelink EU protocol in the core (`core/src/bluelink/`), sans-IO, 36 tests: device registration (`spa::register_request`, `Stamp`), IDP authorize / RSA key / sign-in (`idp`), CCI token and CCS exchange with `X-Fingerprint` (`cci`), vehicle list, state of charge (CCS2 and legacy), PIN control token, send destination (`spa`). Errors give short Diagnostic codes (`gate9036`, `4002`, `creds`, `login20`, `pin`...). Module doc in `bluelink/mod.rs` lists the call order.
 - Fixtures: synthetic, written by `scripts/gen-bluelink-fixtures.py`, an independent stdlib-Python oracle of upstream's chain. No recording exists yet.
+- App constants at build time: `scripts/app-constants.py` reads upstream's `const.py`, `ApiImplType1.py`, `KiaUvoApiEU.py`, `cci_fingerprint.py` with `ast` (never runs them) and writes `ios/Generated/bluelink_constants.json`; `scripts/ios-build.sh` stage "Bluelink constants" fetches upstream at one commit (`HUDNAV_UPSTREAM_REF` pins it) and fails if the bundle lacks the file. Dry-run in the cloud workspace on upstream `b952510`: ok. Not yet run on the Mac.
+- Signature repair in the core: `bluelink::upstream::FingerprintOverride::from_upstream` reads the Hyundai signing key and Android build identity from `cci_fingerprint.py` text, header-safe values only (`parse-fpkey`, `parse-fpident`, `parse-fpvalue`); `AppConstants::with_override` applies it. Core and script agree on the real file (ignored test `live_upstream_file_parses`, run with `HUDNAV_UPSTREAM_FP` and `HUDNAV_UPSTREAM_CONSTANTS`).
+- Synthetic copies of the four upstream files in `fixtures/bluelink_eu/upstream_synthetic/`; CI checks the script turns them into `constants_synthetic.json` (`scripts/test_app_constants.py`, run by `core-check.sh`).
 
 **Bluelink EU findings** (reference: Hyundai-Kia-Connect/hyundai_kia_connect_api, MIT, very active; re-read at upstream `b952510`, 2026-11-03, unchanged since the morning)
 - Path to use: upstream's `KiaUvoApiEU` (region 1, legacy SPA endpoints on `prd.eu-ccapi.hyundai.com:8080`). It has `set_navigation`. The newer GSPA path (`HyundaiCciApiEU`, region 9) has no send-destination call.
@@ -22,8 +25,8 @@ Updated: 2026-11-03 (late evening)
 - Fragile: upstream changes often (WAF blocks, consent prompts, fingerprint gate). Plan a weekly scheduled check of upstream's EU files.
 
 **Next**
-1. Constants (decided, see DECISIONS): `scripts/ios-build.sh` writes the real constants JSON into the app bundle from upstream (shape of `fixtures/bluelink_eu/constants_synthetic.json`, read by `AppConstants::from_json`). Core, test-first against a synthetic copy of upstream's file: parse `cci_fingerprint.py` into a signing-key and client-identity override. App: "Update signature" button on `gate9035`/`gate9036`, then one automatic retry.
-2. Wire the chain into the app: export the Bluelink steps through UniFFI; Swift executor on URLSession (one cookie store per login, no-redirect delegate, final URL in `Response.url`); RSA-PKCS1 in Swift; Keychain entries for email, password and **Bluelink PIN**; "Send test destination" runs the chain and fills the Diagnostic line.
+1. Wire the chain into the app: export the Bluelink steps and `FingerprintOverride` through UniFFI; app loads `bluelink_constants.json` from the bundle; Swift executor on URLSession (one cookie store per login, no-redirect delegate, final URL in `Response.url`); RSA-PKCS1 in Swift; Keychain entries for email, password and **Bluelink PIN**; "Send test destination" runs the chain and fills the Diagnostic line.
+2. Signature repair in the app: on `gate9035`/`gate9036`, an "Update signature" button downloads `https://raw.githubusercontent.com/Hyundai-Kia-Connect/hyundai_kia_connect_api/master/hyundai_kia_connect_api/cci_fingerprint.py`, stores the override (JSON, not secret) until the next build, and retries once.
 3. First build on the Mac (`scripts/ios-build.sh`) through computer use on Terminal.
 4. User: trust the developer profile, sign in to Bluelink in the app (email, password, PIN), tap "Send test destination", paste the Diagnostic line.
 

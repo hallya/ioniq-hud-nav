@@ -4,6 +4,8 @@ Every failure, newest first: what happened, why, what it cost, and the rule or c
 
 | Date | What happened | Root cause | Cost | Prevention |
 | --- | --- | --- | --- | --- |
+| 2026-11-03 | `cargo fmt --check` failed in `core-check.sh` | An edit made after the last `cargo fmt` | Caught locally before push | Run `scripts/core-check.sh` as the last step after all edits (rule 4) |
+| 2026-11-03 | Constants script: one unreadable entry in `_FINGERPRINT_KEYS` hid the whole table | Dict evaluation was all-or-nothing, so a new brand upstream would have broken the build with Hyundai intact | Caught by a test before push | Skip unreadable entries, require the one needed; same case tested in the core parser |
 | 2026-11-03 | A watcher reported the push "still running" after it had finished | `pgrep -f "git push"` matched the watcher's own command line | One false alarm | Wait on a process by PID or on its exit, never by `pgrep -f` on a string the watcher itself contains |
 | 2026-11-03 | Rewrite of the project brief refused | The Projects tool only rewrites a doc whose current text was read in this conversation | One round trip | `project_read` a project doc before `project_write` |
 | 2026-11-03 | crates.io blocked in the morning, reachable in the evening session | Workspace network allowlist differs between sessions | A zero-dependency design driven by a temporary limit | Check registry access at session start; core deps vendored so either state works (`scripts/core-check.sh`) |

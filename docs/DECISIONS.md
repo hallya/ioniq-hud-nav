@@ -2,6 +2,9 @@
 
 One line each, newest first. Settled decisions are not reopened without new facts.
 
+- 2026-11-03 · Build-time constants come from `scripts/app-constants.py` (Python 3.9+ stdlib, `ast` evaluation of literals only; no import or run of upstream code, no pip). The in-car repair parses only `cci_fingerprint.py` in the core with a small lexer. Both are anchored on `constants_synthetic.json` through synthetic copies of upstream's files, so they cannot drift apart unnoticed. Unreadable dict entries (a new brand) are skipped, the Hyundai entry is required.
+- 2026-11-03 · Values read from upstream go into HTTP headers, so both readers accept only printable ASCII, no escapes, at most 128 bytes.
+
 - 2026-11-03 · App constants are bundled into the app by `scripts/ios-build.sh` at each build (the 7-day profile forces a weekly rebuild anyway). Repair in the car: on a `gate9035`/`gate9036`, the app offers one button that downloads upstream's current `cci_fingerprint.py` from GitHub, the core extracts only the Hyundai signing key and client identity (hosts and ids stay bundled), stores it as an override until the next build, and retries. If upstream has not caught up yet, myHyundai's own "send to car" is the fallback for that trip (proven in step 0).
 
 - 2026-11-03 · Bluelink core is sans-IO: one request builder and one parser per step; time, random values, password hex and PIN come in from the shell. Tokens stay raw, builders add `Bearer `. `Host`, `Connection` and `Accept-Encoding` are left to URLSession.
