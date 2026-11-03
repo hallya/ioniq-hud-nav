@@ -1,0 +1,8 @@
+# Build the core from the crates committed under /vendor, with no network.
+# Used by scripts/core-check.sh, locally and in CI, so an out-of-date vendor/
+# fails loudly. Not a default config: ffi/ still resolves from crates.io.
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"

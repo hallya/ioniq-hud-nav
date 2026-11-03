@@ -6,7 +6,8 @@ Updated: 2026-11-03
 
 **Done**
 - Step 0: destination sent from myHyundai reaches the car's nav and the HUD guides. The car asks for confirmation on its screen. Not yet checked: battery preconditioning on a sent DC charger, multiple waypoints.
-- Repo, CI, dependency-free core with diagnostic line, UniFFI bridge, SwiftUI Diagnostic screen, Mac build script.
+- Repo, CI, core with diagnostic line, UniFFI bridge, SwiftUI Diagnostic screen, Mac build script.
+- Core deps: serde + serde_json, vendored; `scripts/core-check.sh` builds and tests the core offline (CI runs it). Both CI jobs, bridge and Swift bindings included, now also run in Claude's workspace.
 
 **Bluelink EU findings** (reference: Hyundai-Kia-Connect/hyundai_kia_connect_api, MIT, very active)
 - Send destination: `POST /api/v2/spa/vehicles/{id}/location/routes` with `deviceID` and `poiInfoList`, a list with `waypointID`, so several waypoints may be possible.
