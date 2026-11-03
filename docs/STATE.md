@@ -22,7 +22,7 @@ Updated: 2026-11-03 (late evening)
 - Fragile: upstream changes often (WAF blocks, consent prompts, fingerprint gate). Plan a weekly scheduled check of upstream's EU files.
 
 **Next**
-1. Decide how the app gets the real app constants (open question for the user). Proposed: a JSON file in this repo, kept up to date by a scheduled GitHub Action that reads upstream and commits when tests pass; the app re-fetches it on a 9035/9036/9037 rejection. `AppConstants::from_json` already reads that shape (see `fixtures/bluelink_eu/constants_synthetic.json`).
+1. Constants (decided, see DECISIONS): `scripts/ios-build.sh` writes the real constants JSON into the app bundle from upstream (shape of `fixtures/bluelink_eu/constants_synthetic.json`, read by `AppConstants::from_json`). Core, test-first against a synthetic copy of upstream's file: parse `cci_fingerprint.py` into a signing-key and client-identity override. App: "Update signature" button on `gate9035`/`gate9036`, then one automatic retry.
 2. Wire the chain into the app: export the Bluelink steps through UniFFI; Swift executor on URLSession (one cookie store per login, no-redirect delegate, final URL in `Response.url`); RSA-PKCS1 in Swift; Keychain entries for email, password and **Bluelink PIN**; "Send test destination" runs the chain and fills the Diagnostic line.
 3. First build on the Mac (`scripts/ios-build.sh`) through computer use on Terminal.
 4. User: trust the developer profile, sign in to Bluelink in the app (email, password, PIN), tap "Send test destination", paste the Diagnostic line.

@@ -2,6 +2,8 @@
 
 One line each, newest first. Settled decisions are not reopened without new facts.
 
+- 2026-11-03 · App constants are bundled into the app by `scripts/ios-build.sh` at each build (the 7-day profile forces a weekly rebuild anyway). Repair in the car: on a `gate9035`/`gate9036`, the app offers one button that downloads upstream's current `cci_fingerprint.py` from GitHub, the core extracts only the Hyundai signing key and client identity (hosts and ids stay bundled), stores it as an override until the next build, and retries. If upstream has not caught up yet, myHyundai's own "send to car" is the fallback for that trip (proven in step 0).
+
 - 2026-11-03 · Bluelink core is sans-IO: one request builder and one parser per step; time, random values, password hex and PIN come in from the shell. Tokens stay raw, builders add `Bearer `. `Host`, `Connection` and `Accept-Encoding` are left to URLSession.
 - 2026-11-03 · Until a real exchange is recorded, Bluelink fixtures are synthetic and come from `scripts/gen-bluelink-fixtures.py`, a stdlib-Python re-implementation of upstream's chain (independent oracle). Sanitized recordings get added next to them once the app runs.
 - 2026-11-03 · Not ported from upstream: the unsigned legacy CCI fallback (transitional there; a gate rejection must surface as `gate90xx` so the constants get renewed), the pre-login cookie and session-language calls (they only set message language), token refresh (re-login each run for now; revisit if rate limits appear).
