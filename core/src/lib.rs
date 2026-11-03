@@ -4,6 +4,7 @@
 //! requests, parses responses and makes decisions; the Swift shell performs the
 //! I/O. That keeps every piece of logic testable on Linux, without a phone or a car.
 
+pub mod base64;
 pub mod bluelink;
 pub mod diag;
 pub mod geo;

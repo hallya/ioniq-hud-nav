@@ -1,0 +1,491 @@
+{
+  "about": "Legacy SPA vehicle API (ccapi:8080), synthetic, shapes from Hyundai-Kia-Connect/hyundai_kia_connect_api (MIT) at b952510.",
+  "inputs": {
+    "device_id": "11111111-2222-4333-8444-555555555555",
+    "now_s": 1793740000,
+    "access_token": "ccs-token",
+    "control_token": "ctl-token"
+  },
+  "register": {
+    "inputs": {
+      "push_reg_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "uuid": "99999999-8888-4777-8666-555555555555"
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://spa.example.test:8080/api/v1/spa/notifications/register",
+      "headers": [
+        [
+          "ccsp-service-id",
+          "00000000-0000-4000-8000-0000000000b2"
+        ],
+        [
+          "ccsp-application-id",
+          "00000000-0000-4000-8000-0000000000c3"
+        ],
+        [
+          "Stamp",
+          "OwBlSq/02T4eaE2S98ElBmuwiPLfJAlzs5j9wicMUbab4JYpBVW+l+DPKXJXvIE="
+        ],
+        [
+          "Content-Type",
+          "application/json;charset=UTF-8"
+        ],
+        [
+          "User-Agent",
+          "okhttp/3.12.0"
+        ]
+      ],
+      "body": "{\"pushRegId\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"pushType\":\"GCM\",\"uuid\":\"99999999-8888-4777-8666-555555555555\"}",
+      "follow_redirects": true
+    },
+    "responses": [
+      {
+        "name": "device id",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"S\",\"resCode\":\"0000\",\"resMsg\":{\"headerTimestamp\":1,\"deviceId\":\"11111111-2222-4333-8444-555555555555\"},\"msgId\":\"msg-0001\"}"
+        },
+        "expect": {
+          "ok": "11111111-2222-4333-8444-555555555555"
+        }
+      },
+      {
+        "name": "rejected",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"F\",\"resCode\":\"4001\",\"resMsg\":\"bad stamp\",\"msgId\":\"m\"}"
+        },
+        "expect": {
+          "err": "4001"
+        }
+      },
+      {
+        "name": "not json",
+        "response": {
+          "status": 500,
+          "headers": [],
+          "url": "",
+          "body": "<html>"
+        },
+        "expect": {
+          "err": "http500"
+        }
+      }
+    ]
+  },
+  "vehicles": {
+    "request": {
+      "method": "GET",
+      "url": "https://spa.example.test:8080/api/v1/spa/vehicles",
+      "headers": [
+        [
+          "Authorization",
+          "Bearer ccs-token"
+        ],
+        [
+          "ccsp-service-id",
+          "00000000-0000-4000-8000-0000000000b2"
+        ],
+        [
+          "ccsp-application-id",
+          "00000000-0000-4000-8000-0000000000c3"
+        ],
+        [
+          "Stamp",
+          "OwBlSq/02T4eaE2S98ElBmuwiPLfJAlzs5j9wicMUbab4JYpBVW+l+DPKXJXvIE="
+        ],
+        [
+          "ccsp-device-id",
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        [
+          "Ccuccs2protocolsupport",
+          "0"
+        ],
+        [
+          "User-Agent",
+          "okhttp/3.12.0"
+        ]
+      ],
+      "body": null,
+      "follow_redirects": true
+    },
+    "responses": [
+      {
+        "name": "two vehicles",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"S\",\"resCode\":\"0000\",\"resMsg\":{\"vehicles\":[{\"vin\":\"TESTVIN0000000001\",\"vehicleId\":\"veh-0001\",\"vehicleName\":\"IONIQ 6\",\"type\":\"EV\",\"nickname\":\"Test car\",\"regDate\":\"2023-01-01 00:00:00.000\",\"master\":true,\"carShare\":1,\"protocolType\":0,\"ccuCCS2ProtocolSupport\":1},{\"vin\":\"TESTVIN0000000001\",\"vehicleId\":\"veh-0002\",\"vehicleName\":\"IONIQ 6\",\"type\":\"EV\",\"nickname\":\"Old car\",\"regDate\":\"2023-01-01 00:00:00.000\",\"master\":true,\"carShare\":1,\"protocolType\":0}]},\"msgId\":\"msg-0001\"}"
+        },
+        "expect": {
+          "ok": [
+            {
+              "id": "veh-0001",
+              "nickname": "Test car",
+              "model": "IONIQ 6",
+              "ccs2": 1
+            },
+            {
+              "id": "veh-0002",
+              "nickname": "Old car",
+              "model": "IONIQ 6",
+              "ccs2": 0
+            }
+          ]
+        }
+      },
+      {
+        "name": "expired token",
+        "response": {
+          "status": 401,
+          "headers": [],
+          "url": "",
+          "body": "{\"error\":\"Key not authorized: Token is expired\"}"
+        },
+        "expect": {
+          "err": "token"
+        }
+      },
+      {
+        "name": "auth error code",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"F\",\"resCode\":\"7501\",\"resMsg\":\"auth\",\"msgId\":\"m\"}"
+        },
+        "expect": {
+          "err": "7501"
+        }
+      },
+      {
+        "name": "bad device id",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"F\",\"resCode\":\"4002\",\"resMsg\":\"Invalid request body - invalid deviceId\",\"msgId\":\"m\"}"
+        },
+        "expect": {
+          "err": "4002"
+        }
+      },
+      {
+        "name": "unknown shape",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"hello\":1}"
+        },
+        "expect": {
+          "err": "parse-spa"
+        }
+      }
+    ]
+  },
+  "status": {
+    "ccs2_request": {
+      "method": "GET",
+      "url": "https://spa.example.test:8080/api/v1/spa/vehicles/veh-0001/ccs2/carstatus/latest",
+      "headers": [
+        [
+          "Authorization",
+          "Bearer ccs-token"
+        ],
+        [
+          "ccsp-service-id",
+          "00000000-0000-4000-8000-0000000000b2"
+        ],
+        [
+          "ccsp-application-id",
+          "00000000-0000-4000-8000-0000000000c3"
+        ],
+        [
+          "Stamp",
+          "OwBlSq/02T4eaE2S98ElBmuwiPLfJAlzs5j9wicMUbab4JYpBVW+l+DPKXJXvIE="
+        ],
+        [
+          "ccsp-device-id",
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        [
+          "Ccuccs2protocolsupport",
+          "1"
+        ],
+        [
+          "User-Agent",
+          "okhttp/3.12.0"
+        ]
+      ],
+      "body": null,
+      "follow_redirects": true
+    },
+    "legacy_request": {
+      "method": "GET",
+      "url": "https://spa.example.test:8080/api/v1/spa/vehicles/veh-0002/status/latest",
+      "headers": [
+        [
+          "Authorization",
+          "Bearer ccs-token"
+        ],
+        [
+          "ccsp-service-id",
+          "00000000-0000-4000-8000-0000000000b2"
+        ],
+        [
+          "ccsp-application-id",
+          "00000000-0000-4000-8000-0000000000c3"
+        ],
+        [
+          "Stamp",
+          "OwBlSq/02T4eaE2S98ElBmuwiPLfJAlzs5j9wicMUbab4JYpBVW+l+DPKXJXvIE="
+        ],
+        [
+          "ccsp-device-id",
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        [
+          "Ccuccs2protocolsupport",
+          "0"
+        ],
+        [
+          "User-Agent",
+          "okhttp/3.12.0"
+        ]
+      ],
+      "body": null,
+      "follow_redirects": true
+    },
+    "responses": [
+      {
+        "name": "ccs2 soc",
+        "ccs2": 1,
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"S\",\"resCode\":\"0000\",\"resMsg\":{\"state\":{\"Vehicle\":{\"Green\":{\"BatteryManagement\":{\"BatteryRemain\":{\"Value\":220356,\"Ratio\":80}}}}}},\"msgId\":\"msg-0001\"}"
+        },
+        "expect": {
+          "ok": 80
+        }
+      },
+      {
+        "name": "ccs2 fractional soc",
+        "ccs2": 1,
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"S\",\"resCode\":\"0000\",\"resMsg\":{\"state\":{\"Vehicle\":{\"Green\":{\"BatteryManagement\":{\"BatteryRemain\":{\"Ratio\":79.6}}}}}},\"msgId\":\"msg-0001\"}"
+        },
+        "expect": {
+          "ok": 79
+        }
+      },
+      {
+        "name": "legacy soc",
+        "ccs2": 0,
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"S\",\"resCode\":\"0000\",\"resMsg\":{\"vehicleStatusInfo\":{\"vehicleStatus\":{\"evStatus\":{\"batteryStatus\":64}}}},\"msgId\":\"msg-0001\"}"
+        },
+        "expect": {
+          "ok": 64
+        }
+      },
+      {
+        "name": "sentinel",
+        "ccs2": 1,
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"S\",\"resCode\":\"0000\",\"resMsg\":{\"state\":{\"Vehicle\":{\"Green\":{\"BatteryManagement\":{\"BatteryRemain\":{\"Ratio\":255}}}}}},\"msgId\":\"msg-0001\"}"
+        },
+        "expect": {
+          "err": "parse-soc"
+        }
+      },
+      {
+        "name": "missing",
+        "ccs2": 1,
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"S\",\"resCode\":\"0000\",\"resMsg\":{\"state\":{\"Vehicle\":{}}},\"msgId\":\"msg-0001\"}"
+        },
+        "expect": {
+          "err": "parse-soc"
+        }
+      },
+      {
+        "name": "no data",
+        "ccs2": 1,
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"F\",\"resCode\":\"5921\",\"resMsg\":\"No Data Found v2\",\"msgId\":\"m\"}"
+        },
+        "expect": {
+          "err": "5921"
+        }
+      }
+    ]
+  },
+  "pin": {
+    "pin": "0000",
+    "request": {
+      "method": "PUT",
+      "url": "https://spa.example.test:8080/api/v1/user/pin?token=",
+      "headers": [
+        [
+          "Authorization",
+          "Bearer ccs-token"
+        ],
+        [
+          "Content-type",
+          "application/json"
+        ],
+        [
+          "User-Agent",
+          "okhttp/3.12.0"
+        ]
+      ],
+      "body": "{\"deviceId\":\"11111111-2222-4333-8444-555555555555\",\"pin\":\"0000\"}",
+      "follow_redirects": true
+    },
+    "responses": [
+      {
+        "name": "control token",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"controlToken\":\"ctl-token\",\"expiresTime\":600}"
+        },
+        "expect": {
+          "ok": {
+            "access_token": "ctl-token",
+            "expires_in_s": 600
+          }
+        }
+      },
+      {
+        "name": "wrong pin",
+        "response": {
+          "status": 400,
+          "headers": [],
+          "url": "",
+          "body": "{\"errId\":\"x\",\"errCode\":\"4003\",\"errMsg\":\"pin\"}"
+        },
+        "expect": {
+          "err": "pin"
+        }
+      }
+    ]
+  },
+  "send_destination": {
+    "poi": {
+      "lat": 45.764,
+      "lon": 4.8357,
+      "name": "Test destination",
+      "addr": "1 Example street",
+      "zip": "00000"
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://spa.example.test:8080/api/v2/spa/vehicles/veh-0001/location/routes",
+      "headers": [
+        [
+          "Authorization",
+          "Bearer ctl-token"
+        ],
+        [
+          "ccsp-service-id",
+          "00000000-0000-4000-8000-0000000000b2"
+        ],
+        [
+          "ccsp-application-id",
+          "00000000-0000-4000-8000-0000000000c3"
+        ],
+        [
+          "Stamp",
+          "OwBlSq/02T4eaE2S98ElBmuwiPLfJAlzs5j9wicMUbab4JYpBVW+l+DPKXJXvIE="
+        ],
+        [
+          "ccsp-device-id",
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        [
+          "Ccuccs2protocolsupport",
+          "1"
+        ],
+        [
+          "User-Agent",
+          "okhttp/3.12.0"
+        ],
+        [
+          "AuthorizationCCSP",
+          "Bearer ctl-token"
+        ],
+        [
+          "Content-Type",
+          "application/json"
+        ]
+      ],
+      "body": "{\"deviceID\":\"11111111-2222-4333-8444-555555555555\",\"poiInfoList\":[{\"phone\":\"\",\"waypointID\":1,\"lang\":1,\"src\":\"HERE\",\"coord\":{\"lat\":45.764,\"alt\":0,\"lon\":4.8357,\"type\":0},\"addr\":\"1 Example street\",\"zip\":\"00000\",\"placeid\":\"\",\"name\":\"Test destination\"}]}",
+      "follow_redirects": true
+    },
+    "responses": [
+      {
+        "name": "accepted",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"S\",\"resCode\":\"0000\",\"resMsg\":{},\"msgId\":\"msg-0042\"}"
+        },
+        "expect": {
+          "ok": "msg-0042"
+        }
+      },
+      {
+        "name": "bad device id",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"F\",\"resCode\":\"4002\",\"resMsg\":\"Invalid request body - invalid deviceId\",\"msgId\":\"m\"}"
+        },
+        "expect": {
+          "err": "4002"
+        }
+      },
+      {
+        "name": "rate limited",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"retCode\":\"F\",\"resCode\":\"5091\",\"resMsg\":\"Exceeds number of requests\",\"msgId\":\"m\"}"
+        },
+        "expect": {
+          "err": "5091"
+        }
+      }
+    ]
+  }
+}

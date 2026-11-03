@@ -1,0 +1,31 @@
+{
+  "about": "Synthetic app constants for tests only; real values are never in this file.",
+  "idp_host": "https://idp.example.test",
+  "cci_host": "https://cci.example.test",
+  "spa_host": "https://spa.example.test:8080",
+  "oneapp_client_id": "00000000-0000-4000-8000-0000000000a1",
+  "oneapp_redirect_uri": "https://oneapp.example.test/redirect",
+  "ccsp_service_id": "00000000-0000-4000-8000-0000000000b2",
+  "app_id": "00000000-0000-4000-8000-0000000000c3",
+  "cfb_base64": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yA=",
+  "push_type": "GCM",
+  "idp_user_agent": "Mozilla/5.0 (Linux; Android 10; K) ExampleBrowser/1.0_CCS_APP_AOS",
+  "spa_user_agent": "okhttp/3.12.0",
+  "client": {
+    "package_id": "com.example.oneapp.eu",
+    "client_name": "ExampleEU",
+    "version": "9.9.9",
+    "os_code": "android",
+    "os_version": "14",
+    "device_model": "TEST-MODEL",
+    "notification_provider": "FCM",
+    "user_agent": "okhttp/4.12.0",
+    "brand_label": "Example",
+    "region": "eu"
+  },
+  "signing_key": {
+    "secret": "TESTsecret01",
+    "piece": "TESTpiece02",
+    "suffix": "TESTsufx03"
+  }
+}

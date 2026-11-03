@@ -1,0 +1,17 @@
+{
+  "about": "Stamp vectors, synthetic constants, algorithm of Hyundai-Kia-Connect/hyundai_kia_connect_api (MIT) at b952510.",
+  "cases": [
+    {
+      "now_s": 1793740000,
+      "expected": "OwBlSq/02T4eaE2S98ElBmuwiPLfJAlzs5j9wicMUbab4JYpBVW+l+DPKXJXvIE="
+    },
+    {
+      "now_s": 1700000000,
+      "expected": "OwBlSq/02T4eaE2S98ElBmuwiPLfJAlzs5j9wicMUbab4JYpBVW+nuPILXJXvIE="
+    },
+    {
+      "now_s": 4102444800,
+      "expected": "OwBlSq/02T4eaE2S98ElBmuwiPLfJAlzs5j9wicMUbab4JYpBVC4nuHMKXZfvIE="
+    }
+  ]
+}

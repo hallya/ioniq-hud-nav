@@ -1,0 +1,463 @@
+{
+  "about": "CCI auth-code and CCS token exchanges (fingerprint-gated), synthetic, shapes from Hyundai-Kia-Connect/hyundai_kia_connect_api (MIT) at b952510.",
+  "inputs": {
+    "device_id": "11111111-2222-4333-8444-555555555555",
+    "timestamp_ms": 1793740000000,
+    "request_nonce": "0123456789ABCDEF01234567",
+    "locale": {
+      "language": "fr",
+      "timezone": "+01:00"
+    }
+  },
+  "token": {
+    "code": "CODE 1/+",
+    "request": {
+      "method": "POST",
+      "url": "https://cci.example.test/auth/v1/token?code=CODE+1%2F%2B",
+      "headers": [
+        [
+          "client-id",
+          "com.example.oneapp.eu"
+        ],
+        [
+          "client-name",
+          "ExampleEU"
+        ],
+        [
+          "client-version",
+          "9.9.9"
+        ],
+        [
+          "client-os-code",
+          "android"
+        ],
+        [
+          "client-os-version",
+          "14"
+        ],
+        [
+          "client-device-id",
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        [
+          "client-device-model",
+          "TEST-MODEL"
+        ],
+        [
+          "client-notification-provider-type",
+          "FCM"
+        ],
+        [
+          "locale",
+          "FR"
+        ],
+        [
+          "timezone",
+          "+01:00"
+        ],
+        [
+          "App-Request-Id",
+          "0123456789ABCDEF01234567_11111111222243338444555555555555_AOS"
+        ],
+        [
+          "X-Brand",
+          "Example"
+        ],
+        [
+          "X-Region",
+          "eu"
+        ],
+        [
+          "User-Agent",
+          "okhttp/4.12.0"
+        ],
+        [
+          "Accept",
+          "*/*"
+        ],
+        [
+          "Accept-Language",
+          "fr"
+        ],
+        [
+          "X-Timestamp",
+          "1793740000000"
+        ],
+        [
+          "X-Fingerprint",
+          "cc2931baa096ea5d7567af16e200f0c365e36130ec6e4f58b7a025a4ac2ecc8c"
+        ]
+      ],
+      "body": null,
+      "follow_redirects": true
+    },
+    "responses": [
+      {
+        "name": "tokens",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"accessToken\":\"cci-access\",\"refreshToken\":\"cci-refresh\",\"nonCcsToken\":\"non-ccs\",\"exchangeableAccessToken\":\"xch-access\",\"exchangeableRefreshToken\":\"xch-refresh\",\"nonCcsRefreshToken\":\"non-ccs-refresh\",\"idToken\":\"id-token\",\"expiresIn\":3599}"
+        },
+        "expect": {
+          "ok": {
+            "access_token": "cci-access",
+            "refresh_token": "cci-refresh",
+            "non_ccs_token": "non-ccs",
+            "exchangeable_access_token": "xch-access",
+            "exchangeable_refresh_token": "xch-refresh",
+            "non_ccs_refresh_token": "non-ccs-refresh",
+            "id_token": "id-token",
+            "expires_in_s": 3599
+          }
+        }
+      },
+      {
+        "name": "minimal",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"accessToken\":\"a\"}"
+        },
+        "expect": {
+          "ok": {
+            "access_token": "a",
+            "refresh_token": "",
+            "non_ccs_token": "",
+            "exchangeable_access_token": "",
+            "exchangeable_refresh_token": "",
+            "non_ccs_refresh_token": "",
+            "id_token": "",
+            "expires_in_s": 3599
+          }
+        }
+      },
+      {
+        "name": "no access token",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"refreshToken\":\"r\"}"
+        },
+        "expect": {
+          "err": "parse-cci"
+        }
+      },
+      {
+        "name": "missing fingerprint",
+        "response": {
+          "status": 400,
+          "headers": [],
+          "url": "",
+          "body": "{\"code\":9035,\"message\":\"rejected\"}"
+        },
+        "expect": {
+          "err": "gate9035"
+        }
+      },
+      {
+        "name": "bad signature",
+        "response": {
+          "status": 400,
+          "headers": [],
+          "url": "",
+          "body": "{\"code\":9036,\"message\":\"rejected\"}"
+        },
+        "expect": {
+          "err": "gate9036"
+        }
+      },
+      {
+        "name": "stale timestamp",
+        "response": {
+          "status": 400,
+          "headers": [],
+          "url": "",
+          "body": "{\"code\":9037,\"message\":\"rejected\"}"
+        },
+        "expect": {
+          "err": "gate9037"
+        }
+      },
+      {
+        "name": "business error",
+        "response": {
+          "status": 400,
+          "headers": [],
+          "url": "",
+          "body": "{\"code\":9013,\"message\":\"x\"}"
+        },
+        "expect": {
+          "err": "http400"
+        }
+      },
+      {
+        "name": "server error",
+        "response": {
+          "status": 502,
+          "headers": [],
+          "url": "",
+          "body": "bad gateway"
+        },
+        "expect": {
+          "err": "http502"
+        }
+      }
+    ]
+  },
+  "ccs_exchange": {
+    "tokens": {
+      "access_token": "cci-access",
+      "refresh_token": "cci-refresh",
+      "non_ccs_token": "non-ccs",
+      "exchangeable_access_token": "xch-access",
+      "exchangeable_refresh_token": "xch-refresh",
+      "non_ccs_refresh_token": "non-ccs-refresh",
+      "id_token": "id-token",
+      "expires_in_s": 3599
+    },
+    "request": {
+      "method": "POST",
+      "url": "https://cci.example.test/auth/v1/token-exchange?serviceType=CCS",
+      "headers": [
+        [
+          "client-id",
+          "com.example.oneapp.eu"
+        ],
+        [
+          "client-name",
+          "ExampleEU"
+        ],
+        [
+          "client-version",
+          "9.9.9"
+        ],
+        [
+          "client-os-code",
+          "android"
+        ],
+        [
+          "client-os-version",
+          "14"
+        ],
+        [
+          "client-device-id",
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        [
+          "client-device-model",
+          "TEST-MODEL"
+        ],
+        [
+          "client-notification-provider-type",
+          "FCM"
+        ],
+        [
+          "locale",
+          "FR"
+        ],
+        [
+          "timezone",
+          "+01:00"
+        ],
+        [
+          "App-Request-Id",
+          "0123456789ABCDEF01234567_11111111222243338444555555555555_AOS"
+        ],
+        [
+          "X-Brand",
+          "Example"
+        ],
+        [
+          "X-Region",
+          "eu"
+        ],
+        [
+          "User-Agent",
+          "okhttp/4.12.0"
+        ],
+        [
+          "Accept",
+          "*/*"
+        ],
+        [
+          "Accept-Language",
+          "fr"
+        ],
+        [
+          "X-Timestamp",
+          "1793740000000"
+        ],
+        [
+          "X-Fingerprint",
+          "cc2931baa096ea5d7567af16e200f0c365e36130ec6e4f58b7a025a4ac2ecc8c"
+        ],
+        [
+          "authorization",
+          "Bearer cci-access"
+        ],
+        [
+          "Authentication",
+          "non-ccs"
+        ],
+        [
+          "exchangeable-token",
+          "xch-access"
+        ],
+        [
+          "non-ccs-token",
+          "non-ccs"
+        ]
+      ],
+      "body": null,
+      "follow_redirects": true
+    },
+    "request_without_exchangeable": {
+      "method": "POST",
+      "url": "https://cci.example.test/auth/v1/token-exchange?serviceType=CCS",
+      "headers": [
+        [
+          "client-id",
+          "com.example.oneapp.eu"
+        ],
+        [
+          "client-name",
+          "ExampleEU"
+        ],
+        [
+          "client-version",
+          "9.9.9"
+        ],
+        [
+          "client-os-code",
+          "android"
+        ],
+        [
+          "client-os-version",
+          "14"
+        ],
+        [
+          "client-device-id",
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        [
+          "client-device-model",
+          "TEST-MODEL"
+        ],
+        [
+          "client-notification-provider-type",
+          "FCM"
+        ],
+        [
+          "locale",
+          "FR"
+        ],
+        [
+          "timezone",
+          "+01:00"
+        ],
+        [
+          "App-Request-Id",
+          "0123456789ABCDEF01234567_11111111222243338444555555555555_AOS"
+        ],
+        [
+          "X-Brand",
+          "Example"
+        ],
+        [
+          "X-Region",
+          "eu"
+        ],
+        [
+          "User-Agent",
+          "okhttp/4.12.0"
+        ],
+        [
+          "Accept",
+          "*/*"
+        ],
+        [
+          "Accept-Language",
+          "fr"
+        ],
+        [
+          "X-Timestamp",
+          "1793740000000"
+        ],
+        [
+          "X-Fingerprint",
+          "cc2931baa096ea5d7567af16e200f0c365e36130ec6e4f58b7a025a4ac2ecc8c"
+        ],
+        [
+          "authorization",
+          "Bearer cci-access"
+        ],
+        [
+          "Authentication",
+          "non-ccs"
+        ]
+      ],
+      "body": null,
+      "follow_redirects": true
+    },
+    "responses": [
+      {
+        "name": "ccs token",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"accessToken\":\"ccs-token\",\"expiresTime\":3600}"
+        },
+        "expect": {
+          "ok": {
+            "access_token": "ccs-token",
+            "expires_in_s": 3600
+          }
+        }
+      },
+      {
+        "name": "alternate key, no ttl",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"ccsAccessToken\":\"ccs-2\"}"
+        },
+        "expect": {
+          "ok": {
+            "access_token": "ccs-2",
+            "expires_in_s": 3600
+          }
+        }
+      },
+      {
+        "name": "no token",
+        "response": {
+          "status": 200,
+          "headers": [],
+          "url": "",
+          "body": "{\"expiresTime\":3600}"
+        },
+        "expect": {
+          "err": "parse-ccs"
+        }
+      },
+      {
+        "name": "bad signature",
+        "response": {
+          "status": 400,
+          "headers": [],
+          "url": "",
+          "body": "{\"code\":9036,\"message\":\"rejected\"}"
+        },
+        "expect": {
+          "err": "gate9036"
+        }
+      }
+    ]
+  }
+}
