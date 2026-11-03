@@ -2,7 +2,8 @@
 //!
 //! Upstream `KiaUvoApiEU._login_with_password_cci`. The three requests share
 //! one cookie store. The password is RSA-PKCS1 encrypted in Swift (Security
-//! framework) with the key from [`parse_certs`]; only its hex reaches the core.
+//! framework) with the key from [`parse_certs`], given as [`public_key_der`];
+//! only the ciphertext reaches the core.
 
 use super::{AppConstants, Error};
 use crate::http::{form_encode, query_params, Method, Request, Response};
@@ -67,6 +68,47 @@ pub fn parse_certs(r: &Response) -> Result<RsaKey, Error> {
         }),
         _ => Err(invalid),
     }
+}
+
+/// The key as a PKCS#1 `RSAPublicKey` DER (`SEQUENCE { n, e }`), the form
+/// `SecKeyCreateWithData` takes, so Swift does no parsing of its own.
+pub fn public_key_der(key: &RsaKey) -> Result<Vec<u8>, Error> {
+    let invalid = Error::Parse("rsakey");
+    let n = der_unsigned(&crate::base64::decode_url(&key.n).ok_or(invalid.clone())?)
+        .ok_or(invalid.clone())?;
+    let e =
+        der_unsigned(&crate::base64::decode_url(&key.e).ok_or(invalid.clone())?).ok_or(invalid)?;
+    Ok(der_tlv(0x30, &[n, e].concat()))
+}
+
+/// A positive DER `INTEGER` from big-endian magnitude bytes; `None` for zero.
+fn der_unsigned(magnitude: &[u8]) -> Option<Vec<u8>> {
+    let first = magnitude.iter().position(|&b| b != 0)?;
+    let digits = &magnitude[first..];
+    let mut content = Vec::with_capacity(digits.len() + 1);
+    if digits[0] & 0x80 != 0 {
+        content.push(0);
+    }
+    content.extend_from_slice(digits);
+    Some(der_tlv(0x02, &content))
+}
+
+fn der_tlv(tag: u8, content: &[u8]) -> Vec<u8> {
+    let mut out = vec![tag];
+    let len = content.len();
+    if len < 0x80 {
+        out.push(len as u8);
+    } else {
+        let bytes: Vec<u8> = len
+            .to_be_bytes()
+            .into_iter()
+            .skip_while(|&b| b == 0)
+            .collect();
+        out.push(0x80 | bytes.len() as u8);
+        out.extend(bytes);
+    }
+    out.extend_from_slice(content);
+    out
 }
 
 pub fn signin_request(
@@ -150,6 +192,38 @@ mod tests {
         let step = &f["certs"];
         fixtures::assert_request(&certs_request(&fixtures::constants()), &step["request"]);
         fixtures::check_cases(step, |_, r| parse_certs(r));
+    }
+
+    #[test]
+    fn public_key_der_matches_openssl() {
+        let f = fixtures::json("rsa_vectors.json");
+        for case in f["cases"].as_array().expect("cases") {
+            let key = RsaKey {
+                kid: "k".into(),
+                n: fixtures::str(case, "n").into(),
+                e: fixtures::str(case, "e").into(),
+            };
+            let want = crate::base64::decode(fixtures::str(case, "der")).expect("der");
+            assert_eq!(
+                public_key_der(&key).as_deref(),
+                Ok(&want[..]),
+                "{}",
+                case["name"]
+            );
+        }
+        for case in f["invalid"].as_array().expect("invalid") {
+            let key = RsaKey {
+                kid: "k".into(),
+                n: fixtures::str(case, "n").into(),
+                e: fixtures::str(case, "e").into(),
+            };
+            assert_eq!(
+                public_key_der(&key).map_err(|e| e.code()),
+                Err("parse-rsakey".to_string()),
+                "{}",
+                case["name"]
+            );
+        }
     }
 
     #[test]

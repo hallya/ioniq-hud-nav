@@ -304,6 +304,7 @@ name = "hudnav-ffi"
 version = "0.1.0"
 dependencies = [
  "hudnav-core",
+ "serde_json",
  "uniffi",
 ]
 

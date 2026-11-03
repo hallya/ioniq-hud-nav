@@ -1,5 +1,6 @@
 //! Standard base64 (RFC 4648 §4, with padding), for the Bluelink `Stamp`
-//! header. Small enough not to justify a dependency.
+//! header, and the base64url decoding of JWK values (§5). Small enough not to
+//! justify a dependency.
 
 const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -45,6 +46,15 @@ pub fn decode(text: &str) -> Option<Vec<u8>> {
     Some(out)
 }
 
+/// Decodes base64url (RFC 4648 §5), padded or not; `None` on `+`, `/` or
+/// any other character outside the URL-safe alphabet.
+pub fn decode_url(text: &str) -> Option<Vec<u8>> {
+    if text.contains(['+', '/']) {
+        return None;
+    }
+    decode(&text.replace('-', "+").replace('_', "/"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -86,5 +96,15 @@ mod tests {
         assert_eq!(decode("Zm9v!"), None);
         assert_eq!(decode("Z"), None);
         assert_eq!(decode("Zg=a"), None);
+    }
+
+    #[test]
+    fn decodes_url_safe_alphabet_only() {
+        assert_eq!(decode_url("-_8").as_deref(), Some(&[0xfb, 0xff][..]));
+        assert_eq!(decode_url("AQAB").as_deref(), Some(&[1, 0, 1][..]));
+        assert_eq!(decode_url("Zg==").as_deref(), Some(&b"f"[..]));
+        assert_eq!(decode_url(""), Some(Vec::new()));
+        assert_eq!(decode_url("+/8"), None);
+        assert_eq!(decode_url("Zm9v!"), None);
     }
 }

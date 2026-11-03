@@ -1,0 +1,40 @@
+{
+  "comment": "PKCS#1 RSAPublicKey DER for JWK n/e (base64url). Public parts only: a throwaway openssl genrsa key, and two keys encoded with openssl asn1parse -genconf.",
+  "cases": [
+    {
+      "name": "openssl 2048-bit key",
+      "n": "v_cvrCpmsba_rqZ5Juc1JmGAglrVS6G1K_oriuCENoM8Omr6nEyInzGBFVINsA8G4h9L4u45Ga8JXot75lDF7hkAkfr6F2CPrhtKN1BZPivvGzMXzAJsURQZyTRe-quI66qa-YI-jxOs4EKOJKojVkwvIf_QksGJZ56UuNF6Gp1_r80pBwny_9U8lLU0JvioZlFfUX-OLVRwGNeMUtCv9C1knMV10bRjHsvy61hwqVNCbRECkL4yzAUd8HuduhWD2Sft2lhGh74xXSphGKg-IhcP9ZgNK3mmus81H_gWRRmjqo32v6XF8N5NSmdK212sDlGFjHM3F2PFVgpdNOB6yw",
+      "e": "AQAB",
+      "der": "MIIBCgKCAQEAv/cvrCpmsba/rqZ5Juc1JmGAglrVS6G1K/oriuCENoM8Omr6nEyInzGBFVINsA8G4h9L4u45Ga8JXot75lDF7hkAkfr6F2CPrhtKN1BZPivvGzMXzAJsURQZyTRe+quI66qa+YI+jxOs4EKOJKojVkwvIf/QksGJZ56UuNF6Gp1/r80pBwny/9U8lLU0JvioZlFfUX+OLVRwGNeMUtCv9C1knMV10bRjHsvy61hwqVNCbRECkL4yzAUd8HuduhWD2Sft2lhGh74xXSphGKg+IhcP9ZgNK3mmus81H/gWRRmjqo32v6XF8N5NSmdK212sDlGFjHM3F2PFVgpdNOB6ywIDAQAB"
+    },
+    {
+      "name": "high bit clear, exponent 3",
+      "n": "f6WlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWl",
+      "e": "Aw",
+      "der": "MIHPAoHJf6WlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlAgED"
+    },
+    {
+      "name": "leading zero in the JWK",
+      "n": "AADB",
+      "e": "AAEAAQ",
+      "der": "MAkCAgDBAgMBAAE="
+    }
+  ],
+  "invalid": [
+    {
+      "name": "not base64url",
+      "n": "a+b/",
+      "e": "AQAB"
+    },
+    {
+      "name": "empty modulus",
+      "n": "",
+      "e": "AQAB"
+    },
+    {
+      "name": "zero exponent",
+      "n": "v_cvrCpmsba_rqZ5Juc1JmGAglrVS6G1K_oriuCENoM8Omr6nEyInzGBFVINsA8G4h9L4u45Ga8JXot75lDF7hkAkfr6F2CPrhtKN1BZPivvGzMXzAJsURQZyTRe-quI66qa-YI-jxOs4EKOJKojVkwvIf_QksGJZ56UuNF6Gp1_r80pBwny_9U8lLU0JvioZlFfUX-OLVRwGNeMUtCv9C1knMV10bRjHsvy61hwqVNCbRECkL4yzAUd8HuduhWD2Sft2lhGh74xXSphGKg-IhcP9ZgNK3mmus81H_gWRRmjqo32v6XF8N5NSmdK212sDlGFjHM3F2PFVgpdNOB6yw",
+      "e": "AA"
+    }
+  ]
+}

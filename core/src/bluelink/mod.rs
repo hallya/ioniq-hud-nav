@@ -13,12 +13,15 @@
 //! 5. [`spa::pin_request`]: control token from the Bluelink PIN, then
 //!    [`spa::send_destination_request`].
 //!
+//! [`run::Run`] drives the whole chain; the shell only performs its effects.
+//!
 //! The core takes time, random values and secrets as inputs; it never
 //! generates or stores them.
 
 pub mod cci;
 pub mod fingerprint;
 pub mod idp;
+pub mod run;
 pub mod spa;
 pub mod stamp;
 pub mod upstream;
@@ -126,6 +129,11 @@ pub enum Error {
     TokenExpired,
     /// No control token: wrong Bluelink PIN.
     Pin,
+    /// The account has no vehicle.
+    NoVehicle,
+    /// The request could not be sent or answered: the shell's error code
+    /// (e.g. `URLError` -1009 offline, -1200 TLS), 0 when unknown.
+    Network(i32),
     /// A field the step needs is missing or malformed.
     Parse(&'static str),
 }
@@ -161,6 +169,9 @@ impl Error {
             }
             Error::TokenExpired => "token".into(),
             Error::Pin => "pin".into(),
+            Error::NoVehicle => "noveh".into(),
+            Error::Network(0) => "net".into(),
+            Error::Network(code) => format!("net{}", code.unsigned_abs()),
             Error::Parse(what) => format!("parse-{what}"),
         }
     }
@@ -216,7 +227,13 @@ mod tests {
             Error::Api("4002 invalid device".into()),
             Error::TokenExpired,
             Error::Pin,
+            Error::NoVehicle,
+            Error::Network(0),
+            Error::Network(-1200),
+            Error::Network(i32::MIN),
             Error::Parse("certs"),
+            Error::Parse("entropy"),
+            Error::Parse("override"),
         ];
         for e in all {
             let code = e.code();
@@ -228,5 +245,7 @@ mod tests {
         }
         assert_eq!(Error::Api("4002 invalid device".into()).code(), "4002");
         assert_eq!(Error::Api(" ?".into()).code(), "api");
+        assert_eq!(Error::Network(-1009).code(), "net1009");
+        assert_eq!(Error::Network(0).code(), "net");
     }
 }

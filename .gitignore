@@ -10,3 +10,4 @@
 .env
 *.secret
 fixtures/private/
+/ffi/generated/
