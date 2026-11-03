@@ -14,11 +14,13 @@ Updated: 2026-11-03
 - Chain: (1) IDP login on idpconnect-eu.hyundai.com: authorize → RSA key → sign in with RSA-PKCS1 encrypted password → auth code. (2) CCI tokens: `POST cci-api-eu.hyundai.com/auth/v1/token?code=…`. (3) CCS token: `POST …/auth/v1/token-exchange?serviceType=CCS`, TTL now 1 h. (4) Device id: `POST /api/v1/spa/notifications/register` with a `Stamp` header. (5) Vehicle list. (6) Send destination: `POST /api/v2/spa/vehicles/{id}/location/routes` with `deviceID` and `poiInfoList` (list with `waypointID`, so several waypoints may be possible); returns `msgId`.
 - New since 2026-10-14: steps (2) and (3) are fingerprint-gated. `X-Fingerprint` = HMAC-SHA256, key = client identity + three constants recovered from the official Android OneApp 1.4.0, message = identity + OS version + `X-Timestamp` + body without whitespace. Headers present the Android app identity. Errors 9035 missing, 9036 bad signature, 9037 timestamp out of window. Constants rotate with app releases.
 - `Stamp` = base64(app CFB constant XOR "APP_ID:unix_seconds").
-- Crypto split: RSA in the Swift shell (Security framework); HMAC-SHA256 location to decide (see Next).
+- Crypto split: RSA in the Swift shell (Security framework); HMAC-SHA256 in the core (`core/src/bluelink/fingerprint.rs`, done, tested against `fixtures/bluelink_eu/fingerprint_vectors.json`).
+- Constants rotation: none seen so far (Hyundai constants and client version 1.4.0 unchanged since 2026-10-14).
 - Fragile: upstream changes often (WAF blocks, consent prompts, fingerprint gate). Plan a weekly scheduled check of upstream's EU files.
 
 **Next**
-1. Decide where HMAC-SHA256 runs (core with vendored RustCrypto `hmac` + `sha2`, or Swift CryptoKit), then Bluelink EU protocol in the core, test-first against sanitized fixtures: login steps, CCS exchange, device registration, vehicle list, state of charge, send destination.
+1. Bluelink EU protocol in the core, test-first against sanitized fixtures: login steps, CCS exchange (signed), device registration (`Stamp`), vehicle list, state of charge, send destination.
+   Proposed, not decided: deliver the app constants as a JSON file in this repo, kept up to date by a scheduled GitHub Action that reads upstream and commits when tests pass; the app re-fetches it on a 9035/9036/9037 rejection.
 2. First build on the Mac (`scripts/ios-build.sh`) through computer use on Terminal.
 3. User: trust the developer profile, sign in to Bluelink in the app, tap "Send test destination", paste the Diagnostic line.
 

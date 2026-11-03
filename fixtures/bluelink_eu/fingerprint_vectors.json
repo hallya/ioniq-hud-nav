@@ -1,0 +1,54 @@
+{
+  "about": "Synthetic X-Fingerprint vectors (no real constants). Expected values computed with Python 3 stdlib hmac/hashlib by the algorithm of upstream hyundai_kia_connect_api cci_fingerprint.py (MIT), commit b952510.",
+  "key": {
+    "secret": "TESTsecret01",
+    "piece": "TESTpiece02",
+    "suffix": "TESTsufx03"
+  },
+  "headers": [
+    [
+      "Client-Id",
+      "com.example.oneapp.eu"
+    ],
+    [
+      "client-name",
+      "ExampleEU"
+    ],
+    [
+      "CLIENT-VERSION",
+      "9.9.9"
+    ],
+    [
+      "client-os-code",
+      "android"
+    ],
+    [
+      "client-os-version",
+      "14"
+    ],
+    [
+      "client-device-id",
+      "00000000-0000-4000-8000-000000000001"
+    ],
+    [
+      "X-Timestamp",
+      "1793740000000"
+    ],
+    [
+      "Accept",
+      "*/*"
+    ]
+  ],
+  "cases": [
+    {
+      "name": "empty body",
+      "body": "",
+      "expected": "cc2931baa096ea5d7567af16e200f0c365e36130ec6e4f58b7a025a4ac2ecc8c"
+    },
+    {
+      "name": "JSON body with ASCII whitespace, vertical tab and a kept no-break space",
+      "body": "{\"a\": 1,\n\t\"b\":\u000b \"c d\",\r\n \"e\": \" x\"}",
+      "expected": "ca67e8b83d9d915e15e493dde059b56a4ee2b26aee26b3e08c5924f11983ad81"
+    }
+  ]
+}

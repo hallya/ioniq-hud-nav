@@ -5,7 +5,10 @@ edition = "2021"
 description = "Sans-IO core for the IONIQ 6 HUD navigation app: planning, models, Bluelink protocol"
 
 # Dependencies are vendored under /vendor so the core still builds and tests offline.
-# Keep this list short: serde + serde_json only (see docs/DECISIONS.md).
+# Keep this list short (see docs/DECISIONS.md): serde + serde_json for JSON,
+# hmac + sha2 (RustCrypto) for the Bluelink EU X-Fingerprint signature.
 [dependencies]
+hmac = "0.12"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = { version = "0.10", default-features = false }
