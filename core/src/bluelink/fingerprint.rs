@@ -12,7 +12,7 @@
 //! releases, so they are data ([`SigningKey`]), never hard-coded here.
 
 /// App-embedded constants concatenated into the HMAC key, in this order.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct SigningKey {
     pub secret: String,
     pub piece: String,

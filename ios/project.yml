@@ -11,7 +11,7 @@ targets:
     sources:
       - path: App
       - path: Generated
-        includes: ["*.swift"]
+        includes: ["*.swift", "bluelink_constants.json"]
     info:
       path: Generated/Info.plist
       properties:

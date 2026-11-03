@@ -35,6 +35,29 @@ run cargo run --quiet --manifest-path ffi/Cargo.toml --bin uniffi-bindgen -- gen
   --library ffi/target/debug/libhudnav_ffi.dylib --language swift --out-dir "$GEN"
 mv -f "$GEN/hudnav_ffiFFI.modulemap" "$GEN/module.modulemap"
 
+# Bluelink app constants, read from upstream's source at each build by
+# scripts/app-constants.py (text only, upstream code never runs). The JSON
+# lands in ios/Generated (not committed) and in the app bundle.
+# HUDNAV_UPSTREAM_REF=<40-hex commit or ref> pins upstream if master breaks.
+UPSTREAM_REPO="Hyundai-Kia-Connect/hyundai_kia_connect_api"
+UP="$ROOT/build/upstream"
+bluelink_constants() {
+  local ref="${HUDNAV_UPSTREAM_REF:-HEAD}" sha f
+  if [[ "$ref" =~ ^[0-9a-f]{40}$ ]]; then sha="$ref"; else
+    sha=$(git ls-remote "https://github.com/$UPSTREAM_REPO" "$ref" | head -1 | cut -f1)
+  fi
+  [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "upstream: no commit for '$ref'"; return 1; }
+  rm -rf "$UP" && mkdir -p "$UP"
+  for f in const.py ApiImplType1.py KiaUvoApiEU.py cci_fingerprint.py; do
+    curl -fsSL --retry 2 -o "$UP/$f" \
+      "https://raw.githubusercontent.com/$UPSTREAM_REPO/$sha/hyundai_kia_connect_api/$f" || return 1
+  done
+  python3 -I scripts/app-constants.py "$UP" --upstream-ref "$UPSTREAM_REPO@$sha" \
+    --out "$GEN/bluelink_constants.json"
+}
+stage "Bluelink constants"
+run bluelink_constants
+
 stage "Xcode project"
 command -v xcodegen >/dev/null || run brew install xcodegen
 run xcodegen generate --spec ios/project.yml --project ios
@@ -54,6 +77,7 @@ run xcodebuild -project ios/HudNav.xcodeproj -scheme HudNav -configuration Relea
   -destination generic/platform=iOS -derivedDataPath build/xcode \
   -allowProvisioningUpdates DEVELOPMENT_TEAM="$TEAM_ID"
 APP="build/xcode/Build/Products/Release-iphoneos/HudNav.app"
+[[ -s "$APP/bluelink_constants.json" ]] || { echo "bluelink_constants.json is missing from $APP"; exit 1; }
 
 [[ $INSTALL == 0 ]] && { echo "Built $APP"; exit 0; }
 

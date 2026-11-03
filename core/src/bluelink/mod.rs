@@ -21,6 +21,7 @@ pub mod fingerprint;
 pub mod idp;
 pub mod spa;
 pub mod stamp;
+pub mod upstream;
 
 #[cfg(test)]
 mod fixtures;
