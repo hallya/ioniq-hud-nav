@@ -7,7 +7,7 @@ description = "UniFFI bridge exposing hudnav-core to Swift"
 [workspace]
 
 [lib]
-crate-type = ["staticlib", "lib"]
+crate-type = ["staticlib", "cdylib", "lib"]
 name = "hudnav_ffi"
 
 [dependencies]
