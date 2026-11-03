@@ -2,6 +2,7 @@
 
 One line each, newest first. Settled decisions are not reopened without new facts.
 
+- 2026-11-03 · Test-first for core logic and protocols (fixtures), CI steps reproducible locally; rules in CLAUDE.md.
 - 2026-11-03 · Repo, code, docs and commits in English.
 - 2026-11-03 · Repo is public: free CI, nothing secret or personal ever committed.
 - 2026-11-03 · Core has zero dependencies (offline builds and tests); UniFFI lives in a separate `ffi` crate.
