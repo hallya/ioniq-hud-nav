@@ -15,9 +15,24 @@ INSTALL=1
 [[ "${1:-}" == "--no-install" ]] && INSTALL=0
 
 stage() { printf '%-28s' "$1"; }
+# Runs one command of a stage. On failure: the distinct error lines of that
+# command only (else its last 20 lines), plus the fix for known causes.
 run() {
+  local from
+  from=$(wc -l < "$LOG")
   if "$@" >>"$LOG" 2>&1; then echo "ok"; else
-    echo "FAILED (see build/ios-build.log)"; tail -n 20 "$LOG"; exit 1
+    echo "FAILED (see build/ios-build.log)"
+    local out
+    out=$(tail -n +"$((from + 1))" "$LOG")
+    if grep -q "error:" <<<"$out"; then
+      grep "error:" <<<"$out" | awk '!seen[$0]++' | head -n 20
+    else
+      tail -n 20 <<<"$out"
+    fi
+    if grep -q "Unable to log in with account" <<<"$out"; then
+      echo "Fix: Xcode > Settings > Accounts: select your Apple ID, sign in again, then rerun."
+    fi
+    exit 1
   fi
 }
 
