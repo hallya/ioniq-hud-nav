@@ -2,6 +2,12 @@
 
 One line each, newest first. Settled decisions are not reopened without new facts.
 
+- 2026-11-03 · The core drives the whole Bluelink chain (`bluelink::run::Run`): Swift only performs effects (HTTP, RSA, clock, randomness). It keeps protocol order and error mapping testable on Linux and the Swift shell small enough to be right on its first Mac compile.
+- 2026-11-03 · The password never crosses the bridge: the core asks Swift to encrypt it and gives the key as PKCS#1 DER (built in the core, the form `SecKeyCreateWithData` takes). The PIN and email do cross, as the requests carry them.
+- 2026-11-03 · Randomness comes as one 72-byte buffer per run (UUID v4, push id, two CCI nonces), formatted in the core, so tests replay the fixtures byte for byte.
+- 2026-11-03 · A stored signature override is tied to the SHA-256 of the bundled constants: a new build with newer constants never runs with an older override.
+- 2026-11-03 · Test destination is a public landmark (Tour Eiffel), defined in the core, never a place of the user.
+- 2026-11-03 · The first vehicle of the account is used; a charge read failure leaves `soc -` and the send goes on.
 - 2026-11-03 · Build-time constants come from `scripts/app-constants.py` (Python 3.9+ stdlib, `ast` evaluation of literals only; no import or run of upstream code, no pip). The in-car repair parses only `cci_fingerprint.py` in the core with a small lexer. Both are anchored on `constants_synthetic.json` through synthetic copies of upstream's files, so they cannot drift apart unnoticed. Unreadable dict entries (a new brand) are skipped, the Hyundai entry is required.
 - 2026-11-03 · Values read from upstream go into HTTP headers, so both readers accept only printable ASCII, no escapes, at most 128 bytes.
 

@@ -4,6 +4,9 @@ Every failure, newest first: what happened, why, what it cost, and the rule or c
 
 | Date | What happened | Root cause | Cost | Prevention |
 | --- | --- | --- | --- | --- |
+| 2026-11-03 | Plan said Claude runs `scripts/ios-build.sh` in Terminal through computer use | Computer use grants terminals the "click" tier: no typing, no key presses, no paste | Plan corrected before any attempt; the build is a user step | The user types build commands; Claude gives them as one line to paste and reads the stage lines back |
+| 2026-11-03 | Two scripted edits went wrong: one to `ffi/src/lib.rs` silently did nothing (compiler caught it), one spliced `docs/STATE.md` at stale offsets (seen in the output) | Replacement targeted text from before `cargo fmt`; offsets computed before an earlier replacement in the same script | Two redo rounds | Scripted edits assert the old text is present, compute offsets after every other change, and the result is read back; or use the Edit tool |
+| 2026-11-03 | Clippy `dead_code` on two run stages' fields | Fields kept "for later" in a state machine | Caught by `core-check.sh` before push | Keep only what a later stage reads |
 | 2026-11-03 | `cargo fmt --check` failed in `core-check.sh` | An edit made after the last `cargo fmt` | Caught locally before push | Run `scripts/core-check.sh` as the last step after all edits (rule 4) |
 | 2026-11-03 | Constants script: one unreadable entry in `_FINGERPRINT_KEYS` hid the whole table | Dict evaluation was all-or-nothing, so a new brand upstream would have broken the build with Hyundai intact | Caught by a test before push | Skip unreadable entries, require the one needed; same case tested in the core parser |
 | 2026-11-03 | A watcher reported the push "still running" after it had finished | `pgrep -f "git push"` matched the watcher's own command line | One false alarm | Wait on a process by PID or on its exit, never by `pgrep -f` on a string the watcher itself contains |

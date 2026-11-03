@@ -1,6 +1,6 @@
 # State
 
-Updated: 2026-11-03 (night)
+Updated: 2026-11-03 (late night)
 
 **Step:** 1, skeleton and proof of life (in progress).
 
@@ -12,6 +12,9 @@ Updated: 2026-11-03 (night)
 - Fixtures: synthetic, written by `scripts/gen-bluelink-fixtures.py`, an independent stdlib-Python oracle of upstream's chain. No recording exists yet.
 - App constants at build time: `scripts/app-constants.py` reads upstream's `const.py`, `ApiImplType1.py`, `KiaUvoApiEU.py`, `cci_fingerprint.py` with `ast` (never runs them) and writes `ios/Generated/bluelink_constants.json`; `scripts/ios-build.sh` stage "Bluelink constants" fetches upstream at one commit (`HUDNAV_UPSTREAM_REF` pins it) and fails if the bundle lacks the file. Dry-run in the cloud workspace on upstream `b952510`: ok. Not yet run on the Mac.
 - Signature repair in the core: `bluelink::upstream::FingerprintOverride::from_upstream` reads the Hyundai signing key and Android build identity from `cci_fingerprint.py` text, header-safe values only (`parse-fpkey`, `parse-fpident`, `parse-fpvalue`); `AppConstants::with_override` applies it. Core and script agree on the real file (ignored test `live_upstream_file_parses`, run with `HUDNAV_UPSTREAM_FP` and `HUDNAV_UPSTREAM_CONSTANTS`).
+- Chain driver in the core: `bluelink::run::Run`, sans-IO, drives register → IDP → CCI/CCS → vehicles → charge → PIN → send and ends with the Diagnostic report and a `repair_signature` flag (gate 9035/9036). Shell gives the clock on each call and 72 random bytes once (UUID, push id, two nonces); the password stays in Swift: the core hands over the IDP key as PKCS#1 DER (`idp::public_key_der`, checked against openssl vectors in `fixtures/bluelink_eu/rsa_vectors.json`) and takes the ciphertext. Transport failures carry the URLError code (`net1009` offline, `net1200` TLS, `net1022` ATS). Empty destination = connection check. 11 tests replay the fixture chain end to end. Charge failure does not stop the send; first vehicle of the account is used.
+- Exported through UniFFI: `BluelinkRun` (`start`, `resume`), `fingerprint_override_from_upstream`, `test_destination` (Tour Eiffel, a public landmark), `bluelink_entropy_len`.
+- Swift shell (not compiled yet, no Swift toolchain in the cloud): `BluelinkClient` (ephemeral URLSession per run, per-task no-redirect delegate, SecKey RSA PKCS#1), `Keychain` (email, password, PIN), `SignatureRepair` (downloads upstream `cci_fingerprint.py`, stores the override in Application Support with the SHA-256 of the bundled constants, so a new build drops it). Diagnostic screen: "Send test destination", "Check connection only", "Update signature and retry", account form.
 - Synthetic copies of the four upstream files in `fixtures/bluelink_eu/upstream_synthetic/`; CI checks the script turns them into `constants_synthetic.json` (`scripts/test_app_constants.py`, run by `core-check.sh`).
 
 **Bluelink EU findings** (reference: Hyundai-Kia-Connect/hyundai_kia_connect_api, MIT, very active; re-read at upstream `b952510`, 2026-11-03, unchanged since the morning)
@@ -25,10 +28,10 @@ Updated: 2026-11-03 (night)
 - Fragile: upstream changes often (WAF blocks, consent prompts, fingerprint gate). Plan a weekly scheduled check of upstream's EU files.
 
 **Next**
-1. Wire the chain into the app: export the Bluelink steps and `FingerprintOverride` through UniFFI; app loads `bluelink_constants.json` from the bundle; Swift executor on URLSession (one cookie store per login, no-redirect delegate, final URL in `Response.url`); RSA-PKCS1 in Swift; Keychain entries for email, password and **Bluelink PIN**; "Send test destination" runs the chain and fills the Diagnostic line.
-2. Signature repair in the app: on `gate9035`/`gate9036`, an "Update signature" button downloads `https://raw.githubusercontent.com/Hyundai-Kia-Connect/hyundai_kia_connect_api/master/hyundai_kia_connect_api/cci_fingerprint.py`, stores the override (JSON, not secret) until the next build, and retries once.
-3. First build on the Mac (`scripts/ios-build.sh`) through computer use on Terminal.
-4. User: trust the developer profile, sign in to Bluelink in the app (email, password, PIN), tap "Send test destination", paste the Diagnostic line.
+1. User, on the Mac (Terminal, not Claude: computer use only gets Terminal at click level): `cd ~/code/ioniq-hud-nav && git pull --ff-only && scripts/ios-build.sh`, paste the stage lines. First compile of the Swift code: expect fixes.
+2. User: trust the developer profile, enter email, password and PIN, Save, tap "Check connection only", paste the line; then "Send test destination", confirm on the car's screen, paste the line.
+3. On `ko`: read the code (`auth ko:http200` on sign-in = redirect followed, i.e. the no-redirect delegate did not apply; `net1022` = ATS; `gate9036` = tap "Update signature and retry"), add a regression test, fix.
+4. Once the line is all `ok`: record sanitized real exchanges as fixtures (tokens, ids, VIN, names, coordinates replaced) next to the synthetic ones.
 
 **Exit criterion:** test destination arrives in the car and the Diagnostic line is all `ok`.
 
