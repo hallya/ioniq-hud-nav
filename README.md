@@ -12,6 +12,7 @@ The iPhone app plans the trip and its charging stops. It sends each next charger
 | `scripts/ios-build.sh` | Builds and installs the app on the paired iPhone (run on the Mac). |
 | `docs/STATE.md` | Where the project stands. Read this first. |
 | `docs/DECISIONS.md` | Decisions taken, one line each. |
+| `docs/LESSONS.md` | Failures and the prevention added for each. |
 
 Unofficial project, not affiliated with Hyundai. The Bluelink API is undocumented and may change.
 
