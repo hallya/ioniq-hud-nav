@@ -1,0 +1,8 @@
+[package]
+name = "hudnav-core"
+version = "0.1.0"
+edition = "2021"
+description = "Sans-IO core for the IONIQ 6 HUD navigation app: planning, models, Bluelink protocol"
+
+# No dependencies on purpose: the core must build and test offline, anywhere.
+[dependencies]

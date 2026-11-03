@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: never
+
+jobs:
+  core:
+    name: Core (fmt, clippy, tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - name: Tests
+        run: |
+          cargo test 2>&1 | tee test.log
+          echo "### Core tests" >> "$GITHUB_STEP_SUMMARY"
+          grep 'test result' test.log | head -5 >> "$GITHUB_STEP_SUMMARY"
+
+  ffi:
+    name: Swift bridge (build and bindings)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ffi
+      - name: Build and generate Swift bindings
+        working-directory: ffi
+        run: |
+          cargo clippy --all-targets -- -D warnings
+          cargo build
+          cargo run --quiet --bin uniffi-bindgen -- generate \
+            --library target/debug/libhudnav_ffi.so --language swift --out-dir generated
+          ls generated
+          echo "### Swift bindings" >> "$GITHUB_STEP_SUMMARY"
+          ls generated >> "$GITHUB_STEP_SUMMARY"

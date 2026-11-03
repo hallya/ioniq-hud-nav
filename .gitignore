@@ -1,0 +1,12 @@
+/target/
+/ffi/target/
+/build/
+/ios/Generated/
+/ios/*.xcodeproj/
+.DS_Store
+*.log
+
+# Never commit secrets or personal trips
+.env
+*.secret
+fixtures/private/
