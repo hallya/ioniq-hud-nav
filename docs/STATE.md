@@ -1,6 +1,6 @@
 # State
 
-Updated: 2026-11-03 (late night)
+Updated: 2026-11-04 (night)
 
 **Step:** 1, skeleton and proof of life (in progress).
 
@@ -15,6 +15,7 @@ Updated: 2026-11-03 (late night)
 - Chain driver in the core: `bluelink::run::Run`, sans-IO, drives register → IDP → CCI/CCS → vehicles → charge → PIN → send and ends with the Diagnostic report and a `repair_signature` flag (gate 9035/9036). Shell gives the clock on each call and 72 random bytes once (UUID, push id, two nonces); the password stays in Swift: the core hands over the IDP key as PKCS#1 DER (`idp::public_key_der`, checked against openssl vectors in `fixtures/bluelink_eu/rsa_vectors.json`) and takes the ciphertext. Transport failures carry the URLError code (`net1009` offline, `net1200` TLS, `net1022` ATS). Empty destination = connection check. 11 tests replay the fixture chain end to end. Charge failure does not stop the send; first vehicle of the account is used.
 - Exported through UniFFI: `BluelinkRun` (`start`, `resume`), `fingerprint_override_from_upstream`, `test_destination` (Tour Eiffel, a public landmark), `bluelink_entropy_len`.
 - Swift shell (not compiled yet, no Swift toolchain in the cloud): `BluelinkClient` (ephemeral URLSession per run, per-task no-redirect delegate, SecKey RSA PKCS#1), `Keychain` (email, password, PIN), `SignatureRepair` (downloads upstream `cci_fingerprint.py`, stores the override in Application Support with the SHA-256 of the bundled constants, so a new build drops it). Diagnostic screen: "Send test destination", "Check connection only", "Update signature and retry", account form.
+- End-to-end tests against `scripts/e2e/mock_bluelink.py` (synthetic fixtures on 127.0.0.1; checks the IDP cookie, the unfollowed sign-in 302, the RSA-decrypted password, PIN, destination): `scripts/e2e-linux.sh` (core through UniFFI Python bindings, 4 scenarios incl. 2 self-tests; CI ffi job) and `scripts/ios-sim-test.sh` (CI job `ios-sim` on `macos-26`: Simulator build, static-link check, UI test of account entry → "Check connection only" → "Send test destination", then the mock's checks). Both green on 2026-11-04 (commit 3980d74). Failure lines of the Simulator job are annotations: readable unauthenticated through `check-runs/{job id}/annotations`.
 - Synthetic copies of the four upstream files in `fixtures/bluelink_eu/upstream_synthetic/`; CI checks the script turns them into `constants_synthetic.json` (`scripts/test_app_constants.py`, run by `core-check.sh`).
 
 **Bluelink EU findings** (reference: Hyundai-Kia-Connect/hyundai_kia_connect_api, MIT, very active; re-read at upstream `b952510`, 2026-11-03, unchanged since the morning)
@@ -28,9 +29,9 @@ Updated: 2026-11-03 (late night)
 - Fragile: upstream changes often (WAF blocks, consent prompts, fingerprint gate). Plan a weekly scheduled check of upstream's EU files.
 
 **Next**
-1. User, on the Mac (Terminal, not Claude: computer use only gets Terminal at click level): `cd ~/code/ioniq-hud-nav && git pull --ff-only && scripts/ios-build.sh`, paste the stage lines. First run (2026-11-03, 23:44): all stages ok up to "App build (signed)", which failed on a rejected Xcode Apple ID login; after an Xcode sign-in, the second run (2026-11-04, 01:25) went through every stage: Swift compiled, app installed and launched, but it closed at once (core linked as a dylib, see LESSONS). Fixed: static archive linked by path, `otool` check in the script. Next run should open the Diagnostic screen.
-2. User: trust the developer profile, enter email, password and PIN, Save, tap "Check connection only", paste the line; then "Send test destination", confirm on the car's screen, paste the line.
-3. On `ko`: read the code (`auth ko:http200` on sign-in = redirect followed, i.e. the no-redirect delegate did not apply; `net1022` = ATS; `gate9036` = tap "Update signature and retry"), add a regression test, fix.
+1. User, on the Mac: `cd ~/code/ioniq-hud-nav && git pull --ff-only && scripts/ios-build.sh`, paste the stage lines. History: run 1 failed on a rejected Xcode Apple ID login (fixed by the user); run 2 installed an app that closed at launch (core linked as a dylib; fixed, `otool` check added, and the Simulator test now launches the app first).
+2. User: enter email, password and PIN, Save, "Check connection only", send `E1 ok|ko : …` + the line; then "Send test destination", confirm on the car's screen, send the line.
+3. On `ko`: read the code (`auth ko:http200` on sign-in = redirect followed; `net1022` = ATS; `gate9036` = "Update signature and retry"), reproduce it in the mock or a core test first, fix, get CI green (rule 7), then ask for a new phone build.
 4. Once the line is all `ok`: record sanitized real exchanges as fixtures (tokens, ids, VIN, names, coordinates replaced) next to the synthetic ones.
 
 **Exit criterion:** test destination arrives in the car and the Diagnostic line is all `ok`.
