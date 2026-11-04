@@ -45,3 +45,29 @@ jobs:
           ls generated
           echo "### Swift bindings" >> "$GITHUB_STEP_SUMMARY"
           ls generated >> "$GITHUB_STEP_SUMMARY"
+      - name: End to end against the mock server (core through Python bindings)
+        run: scripts/e2e-linux.sh
+
+  ios-sim:
+    name: iOS Simulator (build, static link, UI test against the mock)
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios-sim
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ffi
+      - name: Build, launch and UI-test on the Simulator
+        run: scripts/ios-sim-test.sh
+      - name: Keep the logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sim-test
+          path: |
+            build/ios-sim-test.log
+            build/e2e/mock-sim.log
+            build/ios-sim-test.xcresult

@@ -6,6 +6,9 @@ import UIKit
 struct DiagnosticView: View {
     @StateObject private var model = DiagnosticModel()
     @State private var copied = false
+    @FocusState private var focus: Field?
+
+    private enum Field { case email, password, pin }
 
     var body: some View {
         NavigationStack {
@@ -14,29 +17,16 @@ struct DiagnosticView: View {
                     Text(model.line)
                         .font(.system(.body, design: .monospaced))
                         .textSelection(.enabled)
+                        .accessibilityIdentifier("statusLine")
                     Button(copied ? "Copied" : "Copy status line") {
                         UIPasteboard.general.string = model.line
                         copied = true
                     }
                     if let note = model.note {
                         Text(note).font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("note")
                     }
                 }
-
-                Section("Test") {
-                    Button("Send test destination") { start(send: true) }
-                    Button("Check connection only") { start(send: false) }
-                    if model.repairOffered {
-                        Button("Update signature and retry") {
-                            copied = false
-                            Task { await model.repairAndRetry() }
-                        }
-                    }
-                    if model.running {
-                        ProgressView()
-                    }
-                }
-                .disabled(model.running)
 
                 Section {
                     TextField("Email", text: $model.email)
@@ -44,16 +34,44 @@ struct DiagnosticView: View {
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        .focused($focus, equals: .email)
+                        .accessibilityIdentifier("emailField")
                     SecureField(model.passwordSaved ? "Password (saved)" : "Password", text: $model.password)
                         .textContentType(.password)
+                        .focused($focus, equals: .password)
+                        .accessibilityIdentifier("passwordField")
                     SecureField(model.pinSaved ? "PIN (saved)" : "Bluelink PIN", text: $model.pin)
                         .keyboardType(.numberPad)
-                    Button("Save to Keychain") { model.saveCredentials() }
+                        .focused($focus, equals: .pin)
+                        .accessibilityIdentifier("pinField")
+                    Button("Save to Keychain") {
+                        focus = nil
+                        model.saveCredentials()
+                    }
+                    .accessibilityIdentifier("saveButton")
                 } header: {
                     Text("Bluelink account")
                 } footer: {
                     Text("Stored in this iPhone's Keychain only. Empty fields keep the saved value.")
                 }
+
+                Section("Test") {
+                    Button("Check connection only") { start(send: false) }
+                        .accessibilityIdentifier("checkButton")
+                    Button("Send test destination") { start(send: true) }
+                        .accessibilityIdentifier("sendButton")
+                    if model.repairOffered {
+                        Button("Update signature and retry") {
+                            copied = false
+                            Task { await model.repairAndRetry() }
+                        }
+                        .accessibilityIdentifier("repairButton")
+                    }
+                    if model.running {
+                        ProgressView()
+                    }
+                }
+                .disabled(model.running)
 
                 Section("Core") {
                     LabeledContent("Rust core", value: coreVersion())
@@ -61,6 +79,14 @@ struct DiagnosticView: View {
                 }
             }
             .navigationTitle("Diagnostic")
+            .toolbar {
+                // The number pad has no return key: this closes the keyboard.
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { focus = nil }
+                        .accessibilityIdentifier("keyboardDone")
+                }
+            }
         }
     }
 

@@ -11,3 +11,4 @@
 *.secret
 fixtures/private/
 /ffi/generated/
+__pycache__/
