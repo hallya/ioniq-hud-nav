@@ -29,11 +29,11 @@ Updated: 2026-11-04 (morning)
 - Fragile: upstream changes often (WAF blocks, consent prompts, fingerprint gate). Plan a weekly scheduled check of upstream's EU files.
 
 **Next**
-1. Done 2026-11-04 09:32, on the user's iPhone against Hyundai's real servers: "Check connection only" gave `auth ok · veh ok · soc 83 · send -`. So device registration, IDP login (WAF, RSA, cookie, no-redirect), the CCI fingerprint gate with the bundled constants, the CCS token, the vehicle list and the CCS2 charge all work for real.
-2. User: "Send test destination", confirm on the car's screen, send the line. Only the PIN control token and the route call are still unproven.
+1. Done 2026-11-04 09:32, on the user's iPhone against Hyundai's real servers: "Check connection only" gave `auth ok · veh ok · soc 83 · send -`. So device registration, IDP login (WAF, RSA, cookie, no-redirect), the CCI fingerprint gate with the bundled constants, the CCS token, the vehicle list and the CCS2 charge all work for real. The car itself was not reached: it is out of service, and `status/latest` returns Hyundai's cached state (83 % = the car's last report). The planner must show the age of a charge read before using it.
+2. Blocked until the car is back in service: user taps "Send test destination", confirms on the car's screen, sends the line. Only the PIN control token and the route call are still unproven.
 3. On `ko`: read the code (`send ko:pin` = PIN refused; `send ko:4002` = device id; another code = see `spa.rs`), reproduce it in the mock or a core test first, fix, get CI green (rule 7), then ask for a new phone build.
 4. Once the line is all `ok`: record sanitized real exchanges as fixtures (tokens, ids, VIN, names, coordinates replaced) next to the synthetic ones.
 
 **Exit criterion:** test destination arrives in the car and the Diagnostic line is all `ok`.
 
-**Blockers:** none. openrouteservice sign-up page currently returns 404 (only needed from step 2).
+**Blockers:** car out of service since 2026-11-04 (step 1 exit criterion waits for it). openrouteservice sign-up page currently returns 404 (only needed from step 2).
