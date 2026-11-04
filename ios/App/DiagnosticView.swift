@@ -35,10 +35,14 @@ struct DiagnosticView: View {
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .focused($focus, equals: .email)
+                        .submitLabel(.next)
+                        .onSubmit { focus = .password }
                         .accessibilityIdentifier("emailField")
                     SecureField(model.passwordSaved ? "Password (saved)" : "Password", text: $model.password)
                         .textContentType(.password)
                         .focused($focus, equals: .password)
+                        .submitLabel(.next)
+                        .onSubmit { focus = .pin }
                         .accessibilityIdentifier("passwordField")
                     SecureField(model.pinSaved ? "PIN (saved)" : "Bluelink PIN", text: $model.pin)
                         .keyboardType(.numberPad)

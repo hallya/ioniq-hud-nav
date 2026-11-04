@@ -2,6 +2,7 @@
 
 One line each, newest first. Settled decisions are not reopened without new facts.
 
+- 2026-11-04 · End-to-end tests run against `scripts/e2e/mock_bluelink.py` (stdlib Python, synthetic fixtures, fresh RSA key per start): on Linux through UniFFI Python bindings, and on the iOS Simulator through a UI test, in CI on GitHub's free macOS runners (`macos-26`). The user's iPhone only tests what a mock cannot: Hyundai's servers, signing, the car. Proposed by the user.
 - 2026-11-03 · The core drives the whole Bluelink chain (`bluelink::run::Run`): Swift only performs effects (HTTP, RSA, clock, randomness). It keeps protocol order and error mapping testable on Linux and the Swift shell small enough to be right on its first Mac compile.
 - 2026-11-03 · The password never crosses the bridge: the core asks Swift to encrypt it and gives the key as PKCS#1 DER (built in the core, the form `SecKeyCreateWithData` takes). The PIN and email do cross, as the requests carry them.
 - 2026-11-03 · Randomness comes as one 72-byte buffer per run (UUID v4, push id, two CCI nonces), formatted in the core, so tests replay the fixtures byte for byte.

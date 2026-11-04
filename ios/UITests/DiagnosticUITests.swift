@@ -19,9 +19,7 @@ final class DiagnosticUITests: XCTestCase {
         type("e2e@example.test", into: app.textFields["emailField"])
         type("e2e-Password-1", into: app.secureTextFields["passwordField"])
         type("1234", into: app.secureTextFields["pinField"])
-        // Only shown with the software keyboard (not when a hardware one is attached).
-        let done = app.buttons["keyboardDone"]
-        if done.waitForExistence(timeout: 2) { done.tap() }
+        closeKeyboard()
         tap(app.buttons["saveButton"])
         XCTAssertTrue(app.staticTexts["Saved."].waitForExistence(timeout: 5), "Keychain save failed")
 
@@ -33,10 +31,22 @@ final class DiagnosticUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["All ok."].exists)
     }
 
+    /// The keyboard of the previous field can cover the next one: close it
+    /// first, tap the field, and check it took the focus before typing.
     private func type(_ text: String, into field: XCUIElement) {
         XCTAssertTrue(field.waitForExistence(timeout: 5), "missing field \(field)")
+        closeKeyboard()
         tap(field)
+        let focused = NSPredicate(format: "hasKeyboardFocus == true")
+        let expectation = XCTNSPredicateExpectation(predicate: focused, object: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: 5), .completed, "\(field) took no focus")
         field.typeText(text)
+    }
+
+    /// Only shown with the software keyboard (not when a hardware one is attached).
+    private func closeKeyboard() {
+        let done = app.buttons["keyboardDone"]
+        if done.exists && done.isHittable { done.tap() }
     }
 
     /// Scrolls the list until the element can be tapped.
