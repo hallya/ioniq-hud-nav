@@ -2,6 +2,8 @@
 
 One line each, newest first. Settled decisions are not reopened without new facts.
 
+- 2026-11-04 · Step 2 starts while step 1's last check (the send) waits for the car's repair. The car leg was proven in step 0 and the whole chain up to the send works against Hyundai's servers, so rule 6's risk is small. Asked by the user.
+- 2026-11-04 · Sending a destination stays on Bluelink: no known local path. Rejected: rooting the Gen5W head unit (brick risk, undone by updates, no known HUD access) and writing to the CAN bus (unsafe while driving). Open, for the user: an OBD BLE dongle for live battery data, and a CarPlay HUD test that could change the premise.
 - 2026-11-04 · End-to-end tests run against `scripts/e2e/mock_bluelink.py` (stdlib Python, synthetic fixtures, fresh RSA key per start): on Linux through UniFFI Python bindings, and on the iOS Simulator through a UI test, in CI on GitHub's free macOS runners (`macos-26`). The user's iPhone only tests what a mock cannot: Hyundai's servers, signing, the car. Proposed by the user.
 - 2026-11-03 · The core drives the whole Bluelink chain (`bluelink::run::Run`): Swift only performs effects (HTTP, RSA, clock, randomness). It keeps protocol order and error mapping testable on Linux and the Swift shell small enough to be right on its first Mac compile.
 - 2026-11-03 · The password never crosses the bridge: the core asks Swift to encrypt it and gives the key as PKCS#1 DER (built in the core, the form `SecKeyCreateWithData` takes). The PIN and email do cross, as the requests carry them.

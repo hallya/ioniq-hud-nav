@@ -1,8 +1,8 @@
 # State
 
-Updated: 2026-11-04 (morning)
+Updated: 2026-11-04 (late morning)
 
-**Step:** 1, skeleton and proof of life (in progress).
+**Step:** 2, EV brain (starts in a new conversation, 2026-11-04). Step 1 is parked: everything works against Hyundai's real servers except the send, which waits for the car's repair (see "Step 1, when the car is back").
 
 **Done**
 - Step 0: destination sent from myHyundai reaches the car's nav and the HUD guides. The car asks for confirmation on its screen. Not yet checked: battery preconditioning on a sent DC charger, multiple waypoints.
@@ -28,12 +28,27 @@ Updated: 2026-11-04 (morning)
 - Not ported (see DECISIONS): unsigned legacy CCI fallback, pre-login cookie and session-language calls, token refresh (`/auth/v2/token-refresh`).
 - Fragile: upstream changes often (WAF blocks, consent prompts, fingerprint gate). Plan a weekly scheduled check of upstream's EU files.
 
-**Next**
-1. Done 2026-11-04 09:32, on the user's iPhone against Hyundai's real servers: "Check connection only" gave `auth ok · veh ok · soc 83 · send -`. So device registration, IDP login (WAF, RSA, cookie, no-redirect), the CCI fingerprint gate with the bundled constants, the CCS token, the vehicle list and the CCS2 charge all work for real. The car itself was not reached: it is out of service, and `status/latest` returns Hyundai's cached state (83 % = the car's last report). The planner must show the age of a charge read before using it.
-2. Blocked until the car is back in service: user taps "Send test destination", confirms on the car's screen, sends the line. Only the PIN control token and the route call are still unproven.
-3. On `ko`: read the code (`send ko:pin` = PIN refused; `send ko:4002` = device id; another code = see `spa.rs`), reproduce it in the mock or a core test first, fix, get CI green (rule 7), then ask for a new phone build.
-4. Once the line is all `ok`: record sanitized real exchanges as fixtures (tokens, ids, VIN, names, coordinates replaced) next to the synthetic ones.
+**Direct access to the car** (explored 2026-11-04; sources in the plan doc, section "Accès direct à la voiture")
+- No known way to send a destination without Hyundai's servers, short of modifying the head unit. Bluelink stays the send path.
+- CarPlay turn-by-turn in the HUD: iOS 26 lets navigation apps (Google Maps since iOS 26) send maneuver metadata to the cluster/HUD of cars that support it (WWDC25 "Turbocharge your app for CarPlay"). Reported on ccNC Hyundai/Kia (EV9), not on 2022-2024 EV6: the user's Gen5W is probably excluded. User test pending (Apple Maps, then Google Maps, HUD arrows or not). If it works, the project's premise changes: discuss before building more.
+- OBD-II BLE dongle (e.g. OBDLink CX, used on EV6 with ABRP; iPhone needs BLE): live SoC and battery temperatures, car on, no server, read-only. Option for the user to decide; it would replace Hyundai's cached charge in the planner.
+- Rejected: rooting the Gen5W head unit (brick risk, undone by updates, no known HUD access); writing to the CAN bus (unsafe while driving).
+- ioniqforum.com sends automated readers to a TollBit paywall: do not try to read it; ask the user to open threads there.
 
-**Exit criterion:** test destination arrives in the car and the Diagnostic line is all `ok`.
+**Next** (step 2, EV brain; plan doc "Étape 2": exit = reference trips coherent, plan under 50 ms; the user has nothing to do)
+1. Charge age first, test-first: find the status timestamp upstream reads for CCS2 and legacy status, add it to the fixtures, return it with the SoC, show the age on the Diagnostic line and in every plan.
+2. Charger database: a build script run weekly in GitHub Actions, IRVE (France) + OpenStreetMap `amenity=charging_station` (rest of Europe), written to a compact file bundled in the app. A small sanitized sample of each source goes in `fixtures/` before its parser (rule 2). Measure coverage against Open Charge Map on a few corridors before deciding on OCM (DECISIONS).
+3. IONIQ 6 consumption model (77.4 kWh RWD, 18" wheels): speed, elevation, temperature, climate; cite the reference values used.
+4. DC charging curve for the 77.4 kWh pack (power by SoC, cold-battery effect).
+5. Planner: route (openrouteservice at run time, fixtures in tests) + SoC and its age + chargers → stops and arrival SoC; benchmark in CI, under 50 ms on the phone.
+6. Reference trips (e.g. Paris → Lyon at 80 % in winter) as tests; the user may compare one plan with ABRP.
 
-**Blockers:** car out of service since 2026-11-04 (step 1 exit criterion waits for it). openrouteservice sign-up page currently returns 404 (only needed from step 2).
+**Step 1, when the car is back** (user)
+1. CarPlay HUD test (see "Direct access").
+2. "Send test destination", confirm on the car's screen, send the line. Only the PIN control token and the route call are unproven. On `ko`: `send ko:pin` = PIN refused, `send ko:4002` = device id, other codes in `spa.rs`; reproduce in the mock or a core test first, fix, CI green (rule 7), then a new phone build.
+3. Once all `ok`: record sanitized real exchanges as fixtures next to the synthetic ones.
+4. Already proven on 2026-11-04 09:32: "Check connection only" gave `auth ok · veh ok · soc 83 · send -` (registration, IDP login, fingerprint gate, CCS token, vehicle list, CCS2 charge from Hyundai's cache).
+
+**Exit criterion (step 2):** reference trips coherent, plan computed in under 50 ms.
+
+**Blockers:** car out of service since 2026-11-04 (step 1's last check waits for it). openrouteservice sign-up page returned 404 on 2026-11-03; the user needs a free key before the planner runs on the phone, not for core tests.
