@@ -1,6 +1,6 @@
 # State
 
-Updated: 2026-11-04 (night)
+Updated: 2026-11-04 (morning)
 
 **Step:** 1, skeleton and proof of life (in progress).
 
@@ -29,9 +29,9 @@ Updated: 2026-11-04 (night)
 - Fragile: upstream changes often (WAF blocks, consent prompts, fingerprint gate). Plan a weekly scheduled check of upstream's EU files.
 
 **Next**
-1. User, on the Mac: `cd ~/code/ioniq-hud-nav && git pull --ff-only && scripts/ios-build.sh`, paste the stage lines. History: run 1 failed on a rejected Xcode Apple ID login (fixed by the user); run 2 installed an app that closed at launch (core linked as a dylib; fixed, `otool` check added, and the Simulator test now launches the app first).
-2. User: enter email, password and PIN, Save, "Check connection only", send `E1 ok|ko : …` + the line; then "Send test destination", confirm on the car's screen, send the line.
-3. On `ko`: read the code (`auth ko:http200` on sign-in = redirect followed; `net1022` = ATS; `gate9036` = "Update signature and retry"), reproduce it in the mock or a core test first, fix, get CI green (rule 7), then ask for a new phone build.
+1. Done 2026-11-04 09:32, on the user's iPhone against Hyundai's real servers: "Check connection only" gave `auth ok · veh ok · soc 83 · send -`. So device registration, IDP login (WAF, RSA, cookie, no-redirect), the CCI fingerprint gate with the bundled constants, the CCS token, the vehicle list and the CCS2 charge all work for real.
+2. User: "Send test destination", confirm on the car's screen, send the line. Only the PIN control token and the route call are still unproven.
+3. On `ko`: read the code (`send ko:pin` = PIN refused; `send ko:4002` = device id; another code = see `spa.rs`), reproduce it in the mock or a core test first, fix, get CI green (rule 7), then ask for a new phone build.
 4. Once the line is all `ok`: record sanitized real exchanges as fixtures (tokens, ids, VIN, names, coordinates replaced) next to the synthetic ones.
 
 **Exit criterion:** test destination arrives in the car and the Diagnostic line is all `ok`.
