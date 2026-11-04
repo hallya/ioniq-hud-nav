@@ -29,6 +29,7 @@ targets:
         SWIFT_VERSION: "5.9"
         SWIFT_INCLUDE_PATHS: $(PROJECT_DIR)/Generated
         HEADER_SEARCH_PATHS: $(PROJECT_DIR)/Generated
-        LIBRARY_SEARCH_PATHS: $(PROJECT_DIR)/../ffi/target/aarch64-apple-ios/release
-        OTHER_LDFLAGS: -lhudnav_ffi
+        # The static archive by path: `-lhudnav_ffi` would pick the cdylib that
+        # sits next to it, and the app would crash at launch (dylib not in the bundle).
+        OTHER_LDFLAGS: $(PROJECT_DIR)/../ffi/target/aarch64-apple-ios/release/libhudnav_ffi.a
         ENABLE_BITCODE: NO

@@ -93,6 +93,13 @@ run xcodebuild -project ios/HudNav.xcodeproj -scheme HudNav -configuration Relea
   -allowProvisioningUpdates DEVELOPMENT_TEAM="$TEAM_ID"
 APP="build/xcode/Build/Products/Release-iphoneos/HudNav.app"
 [[ -s "$APP/bluelink_constants.json" ]] || { echo "bluelink_constants.json is missing from $APP"; exit 1; }
+# The Rust core must be inside the app binary: a reference to libhudnav_ffi.dylib
+# means dyld looks for it on the iPhone, fails, and the app closes at launch.
+if otool -L "$APP/HudNav" | grep -q "libhudnav_ffi"; then
+  echo "HudNav links libhudnav_ffi.dylib instead of the static core; it would crash at launch"
+  otool -L "$APP/HudNav" | grep "libhudnav_ffi"
+  exit 1
+fi
 
 [[ $INSTALL == 0 ]] && { echo "Built $APP"; exit 0; }
 
